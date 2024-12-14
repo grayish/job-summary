@@ -3,7 +3,7 @@ import { execSync } from "child_process";
 import { readFileSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 import { access, constants } from "fs/promises";
 import path from "path";
-import { DefaultArtifactClient } from "@actions/artifact";
+import { create } from "@actions/artifact";
 import { debug } from "console";
 
 interface Input {
@@ -116,17 +116,17 @@ module.exports = {
   setOutput('job-summary-html', readFileSync(htmlFile, 'utf8'));
 
   if (input.createPdfArtifact) {
-    const artifact = new DefaultArtifactClient()
+    const artifact = create()
     await artifact.uploadArtifact(input.artifactName ? input.artifactName + '-pdf' : 'pdf', [pdfFile], '.')
   }
 
   if (input.createMdArtifact) {
-    const artifact = new DefaultArtifactClient()
+    const artifact = create()
     await artifact.uploadArtifact(input.artifactName ? input.artifactName + '-md' : 'md', [mdFile], '.')
   }
 
   if (input.createHtmlArtifact) {
-    const artifact = new DefaultArtifactClient()
+    const artifact = create()
     await artifact.uploadArtifact(input.artifactName ? input.artifactName + '-html' : 'html', [htmlFile], '.')
   }
 
