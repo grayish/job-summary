@@ -29953,8 +29953,6 @@ __nccwpck_require__.d(__webpack_exports__, {
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2831);
-;// CONCATENATED MODULE: external "child_process"
-const external_child_process_namespaceObject = require("child_process");
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(9896);
 ;// CONCATENATED MODULE: external "fs/promises"
@@ -29973,16 +29971,10 @@ var external_console_ = __nccwpck_require__(4236);
 
 
 
-
 const getInputs = () => {
     const result = {};
     result.name = (0,core.getInput)("name");
-    result.createMd = (0,core.getBooleanInput)("create-md");
     result.createMdArtifact = (0,core.getBooleanInput)("create-md-artifact");
-    result.createPdf = (0,core.getBooleanInput)("create-pdf");
-    result.createPdfArtifact = (0,core.getBooleanInput)("create-pdf-artifact");
-    result.createHtml = (0,core.getBooleanInput)("create-html");
-    result.createHtmlArtifact = (0,core.getBooleanInput)("create-html-artifact");
     result.artifactName = (0,core.getInput)("artifact-name") || '';
     return result;
 };
@@ -30007,8 +29999,6 @@ const run = async () => {
     const filePathObj = external_path_default().parse(filePath);
     const dir = filePathObj.dir;
     const mdFile = `${input.name}.md`;
-    const pdfFile = `${input.name}.pdf`;
-    const htmlFile = `${input.name}.html`;
     (0,external_console_.debug)(`Job summary file directory: ${dir}`);
     const JobSummaryFiles = (0,external_fs_.readdirSync)(dir);
     (0,external_console_.debug)(`Job files: ${JobSummaryFiles}`);
@@ -30024,60 +30014,12 @@ const run = async () => {
     (0,core.info)(jobSummary);
     (0,core.endGroup)();
     (0,core.setOutput)('job-summary', jobSummary);
-    if (input.createMd) {
-        (0,external_fs_.writeFileSync)(`./${mdFile}`, jobSummary);
-    }
-    const configFileName = '_config.js';
-    const config = `// A marked renderer for mermaid diagrams
-const renderer = {
-    code(code, infostring) {
-        if (infostring === 'mermaid'){
-            return \`<pre class="mermaid">$\{code}</pre>\`
-        }
-        return false
-    },
-};
-
-module.exports = {
-    marked_extensions: [{ renderer }],
-    script: [
-        { url: 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js' },  
-        // Alternative to above: if you have no Internet access, you can also embed a local copy
-        // { content: require('fs').readFileSync('./node_modules/mermaid/dist/mermaid.js', 'utf-8') }
-        // For some reason, mermaid initialize doesn't render diagrams as it should. It's like it's missing
-        // the document.ready callback. Instead we can explicitly render the diagrams
-        { content: 'mermaid.initialize({ startOnLoad: false}); (async () => { await mermaid.run(); })();' }
-    ]
-};`;
-    (0,external_child_process_namespaceObject.execSync)(`npm i -g md-to-pdf`);
-    (0,external_fs_.writeFileSync)(configFileName, config);
-    (0,external_child_process_namespaceObject.execSync)(`md-to-pdf --config-file ./${configFileName} ./${mdFile}`);
-    (0,core.info)('PDF generated successfully');
-    (0,external_child_process_namespaceObject.execSync)(`md-to-pdf --config-file ./${configFileName} ./${mdFile} --as-html`);
-    (0,core.info)('HTML generated successfully');
-    (0,external_fs_.unlinkSync)(configFileName);
-    (0,core.setOutput)('job-summary-html', (0,external_fs_.readFileSync)(htmlFile, 'utf8'));
-    if (input.createPdfArtifact) {
-        const artifact = (0,artifact_client/* create */.v)();
-        await artifact.uploadArtifact(input.artifactName ? input.artifactName + '-pdf' : 'pdf', [pdfFile], '.');
-    }
+    (0,external_fs_.writeFileSync)(`./${mdFile}`, jobSummary);
     if (input.createMdArtifact) {
         const artifact = (0,artifact_client/* create */.v)();
         await artifact.uploadArtifact(input.artifactName ? input.artifactName + '-md' : 'md', [mdFile], '.');
     }
-    if (input.createHtmlArtifact) {
-        const artifact = (0,artifact_client/* create */.v)();
-        await artifact.uploadArtifact(input.artifactName ? input.artifactName + '-html' : 'html', [htmlFile], '.');
-    }
-    if (!input.createMd)
-        (0,external_fs_.unlinkSync)(pdfFile);
-    if (!input.createPdf)
-        (0,external_fs_.unlinkSync)(pdfFile);
-    if (!input.createHtml)
-        (0,external_fs_.unlinkSync)(htmlFile);
-    (0,core.setOutput)('pdf-file', external_path_default().resolve(pdfFile));
     (0,core.setOutput)('md-file', external_path_default().resolve(mdFile));
-    (0,core.setOutput)('html-file', external_path_default().resolve(htmlFile));
 };
 run();
 
